@@ -1,30 +1,34 @@
 # eslint-config-tariffshield
 
 Shared ESLint configuration for TariffShield workspaces. `apps/api`, `apps/web`, and
-`packages/sdk` all extend this config so TypeScript lint rules stay consistent across
+`packages/sdk` all use this config so TypeScript lint rules stay consistent across
 the monorepo. New workspace packages should do the same.
 
 ## Usage
 
 This is an [ESLint shareable config](https://eslint.org/docs/latest/extend/shareable-configs)
-in the legacy `.eslintrc` format (not flat config). Add it to your workspace's
-`.eslintrc.json`:
+in the [flat config](https://eslint.org/docs/latest/use/configure/configuration-files) format
+(ESLint 9). It exports a config array, so include it in an `eslint.config.mjs`:
 
-```json
-{
-  "extends": ["tariffshield"],
-  "ignorePatterns": ["dist/**", "node_modules/**"]
-}
+```js
+import { defineConfig, globalIgnores } from 'eslint/config';
+import tariffshield from 'eslint-config-tariffshield';
+
+export default defineConfig([globalIgnores(['**/dist/']), tariffshield]);
 ```
 
-`"tariffshield"` resolves to this package because its name is `eslint-config-tariffshield` —
-ESLint's `extends` shorthand drops the `eslint-config-` prefix. The `extends` array is
-applied in order, so frameworks can be layered on top and override these rules:
+The repository root `eslint.config.mjs` does exactly this, and ESLint 9 resolves the config
+from the working directory upwards, so `npm run lint --workspace=<your-workspace>` picks it up
+with no per-workspace file. A workspace that needs framework rules adds its own
+`eslint.config.mjs` and layers them after this config so they can override it — see
+`apps/web/eslint.config.mjs`:
 
-```json
-{
-  "extends": ["tariffshield", "next/core-web-vitals"]
-}
+```js
+import { defineConfig } from 'eslint/config';
+import nextVitals from 'eslint-config-next/core-web-vitals';
+import tariffshield from 'eslint-config-tariffshield';
+
+export default defineConfig([tariffshield, nextVitals]);
 ```
 
 Then add a `lint` script to the workspace's `package.json`, matching the existing apps:
@@ -42,27 +46,24 @@ and run it with `npm run lint --workspace=<your-workspace>`.
 ## Peer dependencies
 
 The config relies on these peers, pinned once in the root `package.json` devDependencies —
-workspaces extending it do not need to declare them:
+workspaces using it do not need to declare them:
 
-| Package                            | Required version |
-| ---------------------------------- | ---------------- |
-| `eslint`                           | `>= 8`           |
-| `@typescript-eslint/parser`        | `>= 7`           |
-| `@typescript-eslint/eslint-plugin` | `>= 7`           |
+| Package             | Required version |
+| ------------------- | ---------------- |
+| `eslint`            | `>= 9`           |
+| `@eslint/js`        | `>= 9`           |
+| `typescript-eslint` | `>= 8`           |
 
 ## What's included
 
-- Parser `@typescript-eslint/parser` with the `@typescript-eslint` plugin.
-- Extends `eslint:recommended` and `plugin:@typescript-eslint/recommended`.
-- `node` + `es2022` environments.
+- `@eslint/js` `recommended` and `typescript-eslint` `recommended` (parser + plugin).
 - Project rule tweaks: `@typescript-eslint/no-explicit-any` and
   `@typescript-eslint/no-non-null-assertion` are off, and `@typescript-eslint/no-unused-vars`
-  allows `_`-prefixed arguments/variables.
+  allows `_`-prefixed arguments, variables, and caught errors.
 
 ## Adding a new workspace
 
-1. Add an `.eslintrc.json` as shown above.
-2. If the workspace is TypeScript, make sure its `tsconfig.json` is listed in the root
-   `.eslintrc.js` `parserOptions.project` so type-aware rules can parse it.
-3. Add a `lint` script (see above) and, if you want it enforced in CI, add the workspace
+1. Nothing to configure if the root `eslint.config.mjs` is enough; otherwise add a workspace
+   `eslint.config.mjs` as shown above.
+2. Add a `lint` script (see above) and, if you want it enforced in CI, add the workspace
    to the matrix in `.github/workflows/lint.yml`.
