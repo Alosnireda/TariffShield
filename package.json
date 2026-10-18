@@ -34,7 +34,7 @@
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "generate:types": "openapi-typescript docs/security/openapi.yaml -o packages/api-types/index.ts",
     "watch:contracts": "cd contracts/tariff-shield && cargo watch -x test -w src/",
-    "prepare": "husky install || true"
+    "prepare": "husky"
   },
   "lint-staged": {
     "*.{ts,tsx}": [
@@ -58,13 +58,13 @@
     "@semantic-release/git": "^10.0.0",
     "@semantic-release/github": "^10.0.0",
     "@semantic-release/npm": "^13.1.5",
-    "@typescript-eslint/eslint-plugin": "^7.0.0",
-    "@typescript-eslint/parser": "^7.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
     "concurrently": "^9.2.4",
     "conventional-changelog-cli": "^5.0.0",
     "eslint": "^8.57.0",
-    "husky": "^8.0.3",
-    "lint-staged": "^15.2.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
     "openapi-typescript": "^7.0.0",
     "prettier": "^3.0.0",
     "semantic-release": "^25.0.8",
